@@ -1,0 +1,207 @@
+services:
+  # ==========================================
+  # 1. PostgreSQL Database
+  # ==========================================
+  postgres:
+    image: postgres:16
+    container_name: cyber_postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: cyber_db
+      POSTGRES_USER: cyber_user
+      POSTGRES_PASSWORD: cyberpass1
+
+    ports:
+      - "5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/10-init.sql:ro
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - cyber_network
+
+  # ==========================================
+  # 2. Airflow Initialization
+  # ==========================================
+  airflow-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: cyber_airflow_init
+    restart: "no"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment: &airflow-environment
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: Asia/Bangkok
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__WEBSERVER__SECRET_KEY: local-development-secret-key
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      NVD_API_KEY: ${NVD_API_KEY:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      CVSS_MIN_SCORE: ${CVSS_MIN_SCORE:-9.0}
+      LOOKBACK_DAYS: ${LOOKBACK_DAYS:-60}
+
+    volumes: &airflow-volumes
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+
+    command:
+      - bash
+      - -c
+      - |
+        airflow db migrate &&
+        (
+          airflow users create \
+            --username admin \
+            --password "$${AIRFLOW_ADMIN_PASSWORD:-admin123}" \
+            --firstname Cyber \
+            --lastname Admin \
+            --role Admin \
+            --email admin@example.com \
+          || true
+        )
+
+    networks:
+      - cyber_network
+
+  # ==========================================
+  # 3. Airflow Webserver
+  # ==========================================
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: cyber_airflow_webserver
+    restart: unless-stopped
+
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+    environment:
+      <<: *airflow-environment
+
+    volumes: *airflow-volumes
+
+    ports:
+      - "8080:8080"
+
+    command: webserver
+
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - --fail
+        - http://localhost:8080/health
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+    networks:
+      - cyber_network
+
+  # ==========================================
+  # 4. Airflow Scheduler
+  # ==========================================
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: cyber_airflow_scheduler
+    restart: unless-stopped
+
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+    environment:
+      <<: *airflow-environment
+
+    volumes: *airflow-volumes
+
+    command: scheduler
+
+    networks:
+      - cyber_network
+
+  # ==========================================
+  # 5. Flask Web Dashboard
+  # ==========================================
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: cyber_dashboard
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: "5000"
+      FLASK_DEBUG: "false"
+
+    volumes:
+      - ./web:/opt/airflow/web:ro
+
+    working_dir: /opt/airflow/web
+
+    command:
+      - flask
+      - --app
+      - app
+      - run
+      - --host=0.0.0.0
+      - --port=5000
+
+    ports:
+      - "5000:5000"
+
+    networks:
+      - cyber_network
+
+# ==========================================
+# Persistent Storage
+# ==========================================
+volumes:
+  postgres_data:
+
+# ==========================================
+# Internal Network
+# ==========================================
+networks:
+  cyber_network:
+    driver: bridge

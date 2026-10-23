@@ -1,0 +1,285 @@
+/* ==========================================
+   Cyber Vulnerability Intelligence Dashboard
+   ========================================== */
+
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --background: #f3f6fb;
+    --surface: #ffffff;
+    --text: #172033;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --critical: #dc2626;
+    --critical-bg: #fef2f2;
+    --success: #15803d;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--background);
+    color: var(--text);
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-size: 14px;
+}
+
+/* Navbar */
+
+.topbar {
+    background: #111827;
+    border-bottom: 3px solid var(--critical);
+}
+
+.navbar-brand {
+    font-size: 18px;
+    letter-spacing: 0.2px;
+}
+
+.brand-icon {
+    color: #f87171;
+    font-size: 25px;
+    margin-right: 8px;
+}
+
+/* Page header */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.page-header h1 {
+    font-size: 27px;
+    font-weight: 750;
+    margin-bottom: 8px;
+}
+
+/* Buttons */
+
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+/* KPI cards */
+
+.kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    height: 100%;
+    box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
+}
+
+.kpi-label {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.kpi-value {
+    margin-top: 12px;
+    margin-bottom: 8px;
+    font-size: 32px;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.kpi-note {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.critical-card {
+    border-top: 4px solid var(--critical);
+}
+
+.critical-card .kpi-value {
+    color: var(--critical);
+}
+
+/* Main panels */
+
+.panel-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
+}
+
+.panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.panel-heading h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Charts */
+
+.chart-container {
+    position: relative;
+    height: 270px;
+    width: 100%;
+}
+
+/* Forms */
+
+.form-label {
+    color: #334155;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.form-control,
+.form-select {
+    min-height: 40px;
+    border-color: var(--border);
+    font-size: 13px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 10%);
+}
+
+/* Tables */
+
+.table {
+    margin-bottom: 0;
+    font-size: 13px;
+}
+
+.table thead th {
+    background: #f8fafc;
+    color: #475569;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    padding: 14px 12px;
+}
+
+.table tbody td {
+    padding: 14px 12px;
+    border-color: #edf1f6;
+}
+
+.cve-link {
+    color: var(--primary);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.cve-link:hover {
+    text-decoration: underline;
+}
+
+.severity-badge {
+    display: inline-block;
+    background: var(--critical-bg);
+    color: var(--critical);
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.description-cell {
+    min-width: 260px;
+    max-width: 440px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.source-badge {
+    display: inline-block;
+    margin: 2px;
+    padding: 4px 7px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: #475569;
+    background: #f8fafc;
+    font-size: 11px;
+}
+
+/* Pagination */
+
+.pagination-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    padding-top: 20px;
+}
+
+#pageInfo {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Status */
+
+#statusMessage {
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+/* Footer */
+
+footer {
+    font-size: 12px;
+}
+
+/* Responsive layout */
+
+@media (max-width: 768px) {
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .page-header h1 {
+        font-size: 22px;
+    }
+
+    .panel-card {
+        padding: 15px;
+    }
+
+    .kpi-card {
+        padding: 17px;
+    }
+
+    .kpi-value {
+        font-size: 27px;
+    }
+
+    .panel-heading h2 {
+        font-size: 15px;
+    }
+
+    .chart-container {
+        height: 230px;
+    }
+}
